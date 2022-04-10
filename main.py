@@ -1,13 +1,12 @@
 from typing import List
 
-import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 
-from . import models
-from .database import SessionLocal
-from .services import user as user_service
+import models
+from database import SessionLocal
+from services import user as user_service
 
 load_dotenv()
 
