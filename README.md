@@ -11,4 +11,7 @@ uvicorn main:app --reload
 
 ## testing
 
-soon
+The code is covered on a unit level by `PyTest` and on an endpoint level by `TestClient`. To run the tests, use
+```commandline
+poetry run pytest
+```
