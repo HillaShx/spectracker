@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from utils import to_lower_camel
+from utils.strings import to_lower_camel
 
 
 class UserBase(BaseModel):
