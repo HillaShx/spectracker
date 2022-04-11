@@ -10,3 +10,8 @@ repos:
     -   id: check-added-large-files
     -   id: no-commit-to-branch
     -   id: check-merge-conflict
+- repo:  https://github.com/milin/giticket
+  rev: v1.3
+  hooks:
+    -   id: giticket
+        args: ['--regex=[A-Z]-[0-9]', '--format=[{ticket}] {commit_msg}']
