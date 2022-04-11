@@ -24,4 +24,3 @@ repos:
         language: script
         pass_filenames: false
         always_run: true
-        stages: [push]
