@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
@@ -17,6 +17,14 @@ router = APIRouter(
 
 
 @router.get("", response_model=List[models.User])
-def get_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+async def get_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     users = user_service.get_users(db, skip=skip, limit=limit)
     return users
+
+
+@router.get("/{user_id}")
+async def get_user(user_id: int, db: Session = Depends(get_db)):
+    user = user_service.get_user_by_id(db, user_id)
+    if user is None:
+        raise HTTPException(404)
+    return user
