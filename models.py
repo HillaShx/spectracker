@@ -1,18 +1,11 @@
-from pydantic import BaseModel
+from sqlalchemy import Column, Integer, String, Enum
 
-from utils.strings import to_lower_camel
-
-
-class UserBase(BaseModel):
-    id: int
-    full_name: str
-    email: str
-    role: str
+from database import Base
 
 
-class User(UserBase):
-    pass
-
-    class Config:
-        alias_generator = to_lower_camel
-        orm_mode = True
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    full_name = Column(String, name="fullName", nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    role = Column(Enum("admin", "case_manager", "therapist", "parent"), default="therapist")

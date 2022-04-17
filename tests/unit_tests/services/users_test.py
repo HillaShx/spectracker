@@ -1,4 +1,4 @@
-from schemas import User
+from models import User
 from services.users import get_users, get_user_by_id
 
 
