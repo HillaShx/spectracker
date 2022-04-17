@@ -9,9 +9,9 @@ def test_get_users():
     assert response.status_code == 200
 
 
-# def test_get_user_success(existing_id):
-#     response = client.get(f"/user/{existing_id}")
-#     assert response.status_code == 200
+def test_get_user_success(existing_id):
+    response = client.get(f"/users/{existing_id}")
+    assert response.status_code == 200
 
 
 def test_get_user_fail(non_existing_id):
