@@ -16,5 +16,5 @@ def test_get_user_success(existing_id):
 
 
 def test_get_user_fail(non_existing_id):
-    response = client.get(f"/user/{non_existing_id}")
+    response = client.get(f"/users/{non_existing_id}")
     assert response.status_code == 404
