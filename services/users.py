@@ -2,9 +2,8 @@ from typing import Optional, List
 
 from sqlalchemy.orm import Session
 
-import schemas
 import models
-from utils.exceptions import OperationFailed
+import schemas
 
 
 def get_user_by_id(db: Session, user_id: int) -> Optional[models.User]:
@@ -16,9 +15,6 @@ def get_users(db: Session, skip: int = 0, limit: int = 100) -> List[schemas.User
 
 
 def create_user(db: Session, user: schemas.UserCreate):
-    print(user)
     user = models.User(**user.dict())
     db.add(user)
     db.commit()
-    # except:
-    #     raise OperationFailed("User creation")

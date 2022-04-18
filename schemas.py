@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 
 from utils.strings import to_lower_camel
@@ -6,10 +8,12 @@ from utils.strings import to_lower_camel
 class UserBase(BaseModel):
     full_name: str
     email: str
-    role: str
+    role: str = "therapist"
 
     class Config:
         alias_generator = to_lower_camel
+        allow_population_by_field_name = True
+        use_enum_values = True
         orm_mode = True
 
 
@@ -18,4 +22,5 @@ class User(UserBase):
 
 
 class UserCreate(UserBase):
-    pass
+    created_at = datetime.now()
+    updated_at = datetime.now()
