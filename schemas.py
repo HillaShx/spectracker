@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from utils.strings import to_lower_camel
 
 
+# pydantic models
 class UserBase(BaseModel):
     full_name: str
     email: str

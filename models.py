@@ -3,6 +3,7 @@ from sqlalchemy import Column, Integer, String, Enum, Date
 from database import Base
 
 
+# SQLAlchemy models
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
