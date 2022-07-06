@@ -4,9 +4,6 @@ from unittest.mock import MagicMock
 import pytest
 from makefun import with_signature
 
-from services.users import get_users
-from tests.models import UserFactory
-
 
 @pytest.fixture
 def db():
@@ -15,16 +12,6 @@ def db():
         yield db
     finally:
         db.close()
-
-
-@pytest.fixture
-def existing_id():
-    return 1
-
-
-@pytest.fixture
-def non_existing_id():
-    return 738974
 
 
 @pytest.fixture
