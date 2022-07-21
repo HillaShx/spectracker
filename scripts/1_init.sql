@@ -1,22 +1,20 @@
-CREATE TYPE role AS ENUM ('manager', 'therapist', 'parent');
-
-
+CREATE TYPE role AS ENUM ('admin', 'case_manager', 'therapist', 'parent');
 
 CREATE TABLE "users" (
-  "id" int PRIMARY KEY,
+  "id" SERIAL PRIMARY KEY,
   "fullName" varchar NOT NULL,
   "email" varchar UNIQUE NOT NULL,
-  "role" role,
-  "createdAt" timestamp,
-  "updatedAt" timestamp
+  "role" role DEFAULT 'therapist',
+  "createdAt" timestamp NOT NULL DEFAULT NOW(),
+  "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "patients" (
-  "id" int PRIMARY KEY,
+  "id" SERIAL PRIMARY KEY,
   "fullName" varchar NOT NULL,
   "birthDate" timestamp NOT NULL,
-  "createdAt" timestamp,
-  "updatedAt" timestamp
+  "createdAt" timestamp NOT NULL DEFAULT NOW(),
+  "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "user_patient" (
@@ -25,57 +23,49 @@ CREATE TABLE "user_patient" (
 );
 
 CREATE TABLE "goals" (
-  "id" int PRIMARY KEY,
+  "id" SMALLSERIAL PRIMARY KEY,
   "serialNum" int NOT NULL,
   "description" text NOT NULL,
   "patientId" int NOT NULL,
-  "skillType" int,
+  "skillTypeId" int,
   "minTherapists" int NOT NULL,
   "minConsecutiveDays" int NOT NULL,
   "archived" bool NOT NULL DEFAULT false,
-  "createdAt" timestamp,
-  "updatedAt" timestamp
+  "createdAt" timestamp NOT NULL DEFAULT NOW(),
+  "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "subGoals" (
-  "id" int PRIMARY KEY,
+  "id" SMALLSERIAL PRIMARY KEY,
   "serialNum" int NOT NULL,
   "description" text NOT NULL,
   "goalId" int NOT NULL,
   "doneAt" timestamp,
-  "createdAt" timestamp,
-  "updatedAt" timestamp
+  "createdAt" timestamp NOT NULL DEFAULT NOW(),
+  "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "environments" (
-  "id" int PRIMARY KEY,
+  "id" SMALLSERIAL PRIMARY KEY,
   "title" varchar UNIQUE NOT NULL,
-  "createdAt" timestamp,
-  "updatedAt" timestamp
+  "createdAt" timestamp NOT NULL DEFAULT NOW(),
+  "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "activities" (
-  "id" int PRIMARY KEY,
+  "id" SMALLSERIAL PRIMARY KEY,
   "title" varchar UNIQUE,
   "description" text,
   "patientId" int,
-  "colorId" int,
-  "createdAt" timestamp,
-  "updatedAt" timestamp
-);
-
-CREATE TABLE "colors" (
-  "id" int PRIMARY KEY,
-  "hexaCode" varchar,
-  "createdAt" timestamp,
-  "updatedAt" timestamp
+  "createdAt" timestamp NOT NULL DEFAULT NOW(),
+  "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "assistances" (
-  "id" int PRIMARY KEY,
+  "id" SMALLSERIAL PRIMARY KEY,
   "title" varchar UNIQUE,
-  "createdAt" timestamp,
-  "updatedAt" timestamp
+  "createdAt" timestamp NOT NULL DEFAULT NOW(),
+  "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "activity_assistance" (
@@ -96,15 +86,15 @@ CREATE TABLE "goal_activity" (
 );
 
 CREATE TABLE "sessions" (
-  "id" int PRIMARY KEY,
+  "id" SERIAL PRIMARY KEY,
   "patientId" int NOT NULL,
   "therapistId" int NOT NULL,
   "scheduledAt" timestamp,
   "duration" float,
   "sessionPlanMessage" text,
   "sessionSummaryMessage" text,
-  "createdAt" timestamp,
-  "updatedAt" timestamp
+  "createdAt" timestamp NOT NULL DEFAULT NOW(),
+  "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "session_activities" (
@@ -114,14 +104,14 @@ CREATE TABLE "session_activities" (
 );
 
 CREATE TABLE "attempts" (
-  "id" int PRIMARY KEY,
+  "id" SERIAL PRIMARY KEY,
   "sessionId" int,
   "activityId" int,
   "environmentId" int,
   "subGoalId" int,
   "successful" bool NOT NULL,
-  "createdAt" timestamp,
-  "updatedAt" timestamp
+  "createdAt" timestamp NOT NULL DEFAULT NOW(),
+  "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "attempt_assistances" (
@@ -136,11 +126,11 @@ CREATE TABLE "session_goal" (
 );
 
 CREATE TABLE "items" (
-  "id" int PRIMARY KEY,
+  "id" SMALLSERIAL PRIMARY KEY,
   "title" varchar,
   "patientId" int,
-  "createdAt" timestamp,
-  "updatedAt" timestamp
+  "createdAt" timestamp NOT NULL DEFAULT NOW(),
+  "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "activity_items" (
@@ -149,10 +139,10 @@ CREATE TABLE "activity_items" (
 );
 
 CREATE TABLE "words" (
-  "id" int PRIMARY KEY,
+  "id" SMALLSERIAL PRIMARY KEY,
   "title" varchar,
-  "createdAt" timestamp,
-  "updatedAt" timestamp
+  "createdAt" timestamp NOT NULL DEFAULT NOW(),
+  "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "patient_word" (
@@ -166,22 +156,95 @@ CREATE TABLE "goal_word" (
 );
 
 CREATE TABLE "skills" (
-  "id" int PRIMARY KEY,
+  "id" SMALLSERIAL PRIMARY KEY,
   "title" varchar,
   "patientId" int,
-  "skillType" int,
+  "skillTypeId" int,
   "acquired" bool,
-  "createdAt" timestamp,
-  "updatedAt" timestamp
+  "createdAt" timestamp NOT NULL DEFAULT NOW(),
+  "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE "skill_types" (
-  "id" int PRIMARY KEY,
+CREATE TABLE "skillTypes" (
+  "id" SMALLSERIAL PRIMARY KEY,
   "title" varchar,
   "level" int,
-  "createdAt" timestamp,
-  "updatedAt" timestamp
+  "createdAt" timestamp NOT NULL DEFAULT NOW(),
+  "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
+
+CREATE OR REPLACE FUNCTION trigger_set_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER users_set_ts_now
+BEFORE UPDATE ON users
+FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
+
+CREATE TRIGGER patients_set_ts_now
+BEFORE UPDATE ON patients
+FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
+
+CREATE TRIGGER goals_set_ts_now
+BEFORE UPDATE ON goals
+FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
+
+CREATE TRIGGER subGoals_set_ts_now
+BEFORE UPDATE ON "subGoals"
+FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
+
+CREATE TRIGGER environments_set_ts_now
+BEFORE UPDATE ON environments
+FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
+
+CREATE TRIGGER activities_set_ts_now
+BEFORE UPDATE ON activities
+FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
+
+CREATE TRIGGER assistances_set_ts_now
+BEFORE UPDATE ON assistances
+FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
+
+CREATE TRIGGER sessions_set_ts_now
+BEFORE UPDATE ON sessions
+FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
+
+CREATE TRIGGER attempts_set_ts_now
+BEFORE UPDATE ON attempts
+FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
+
+CREATE TRIGGER items_set_ts_now
+BEFORE UPDATE ON items
+FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
+
+CREATE TRIGGER words_set_ts_now
+BEFORE UPDATE ON words
+FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
+
+CREATE TRIGGER skills_set_ts_now
+BEFORE UPDATE ON skills
+FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
+
+CREATE TRIGGER skillTypes_set_ts_now
+BEFORE UPDATE ON "skillTypes"
+FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
 
 ALTER TABLE "user_patient" ADD FOREIGN KEY ("userId") REFERENCES "users" ("id");
 
@@ -189,15 +252,13 @@ ALTER TABLE "user_patient" ADD FOREIGN KEY ("patientId") REFERENCES "patients" (
 
 ALTER TABLE "goals" ADD FOREIGN KEY ("patientId") REFERENCES "patients" ("id");
 
-ALTER TABLE "goals" ADD FOREIGN KEY ("skillType") REFERENCES "skill_types" ("id");
+ALTER TABLE "goals" ADD FOREIGN KEY ("skillTypeId") REFERENCES "skillTypes" ("id");
 
 ALTER TABLE "subGoals" ADD FOREIGN KEY ("goalId") REFERENCES "goals" ("id");
 
 ALTER TABLE "subGoals" ADD FOREIGN KEY ("id") REFERENCES "goals" ("id") ON DELETE CASCADE;
 
 ALTER TABLE "activities" ADD FOREIGN KEY ("patientId") REFERENCES "patients" ("id");
-
-ALTER TABLE "activities" ADD FOREIGN KEY ("colorId") REFERENCES "colors" ("id");
 
 ALTER TABLE "activity_assistance" ADD FOREIGN KEY ("activityId") REFERENCES "activities" ("id");
 
@@ -251,7 +312,7 @@ ALTER TABLE "goal_word" ADD FOREIGN KEY ("wordId") REFERENCES "words" ("id");
 
 ALTER TABLE "skills" ADD FOREIGN KEY ("patientId") REFERENCES "patients" ("id");
 
-ALTER TABLE "skills" ADD FOREIGN KEY ("skillType") REFERENCES "skill_types" ("id");
+ALTER TABLE "skills" ADD FOREIGN KEY ("skillTypeId") REFERENCES "skillTypes" ("id");
 
 CREATE UNIQUE INDEX ON "patients" ("fullName", "birthDate");
 
@@ -263,4 +324,4 @@ CREATE UNIQUE INDEX ON "activity_assistance" ("assistanceId", "activityId", "pri
 
 CREATE UNIQUE INDEX ON "items" ("title", "patientId");
 
-CREATE UNIQUE INDEX ON "skill_types" ("title", "level");
+CREATE UNIQUE INDEX ON "skillTypes" ("title", "level");
