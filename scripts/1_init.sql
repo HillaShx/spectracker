@@ -12,14 +12,22 @@ CREATE TABLE "users" (
 CREATE TABLE "patients" (
   "id" SERIAL PRIMARY KEY,
   "fullName" varchar NOT NULL,
-  "birthDate" timestamp NOT NULL,
+  "birthDate" date NOT NULL,
   "createdAt" timestamp NOT NULL DEFAULT NOW(),
   "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "user_patient" (
-  "userId" int,
-  "patientId" int
+  "userId" int NOT NULL,
+  "patientId" int NOT NULL
+);
+
+CREATE TABLE "skillTypes" (
+  "id" SMALLSERIAL PRIMARY KEY,
+  "title" varchar,
+  "level" int,
+  "createdAt" timestamp NOT NULL DEFAULT NOW(),
+  "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "goals" (
@@ -40,7 +48,7 @@ CREATE TABLE "subGoals" (
   "serialNum" int NOT NULL,
   "description" text NOT NULL,
   "goalId" int NOT NULL,
-  "doneAt" timestamp,
+  "completedAt" date,
   "createdAt" timestamp NOT NULL DEFAULT NOW(),
   "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
@@ -69,37 +77,37 @@ CREATE TABLE "assistances" (
 );
 
 CREATE TABLE "activity_assistance" (
-  "activityId" int,
-  "assistanceId" int,
+  "activityId" int NOT NULL,
+  "assistanceId" int NOT NULL,
   "priority" int NOT NULL
 );
 
 CREATE TABLE "activity_environment" (
-  "activityId" int,
-  "environmentId" int,
+  "activityId" int NOT NULL,
+  "environmentId" int NOT NULL,
   "default" bool NOT NULL DEFAULT false
 );
 
 CREATE TABLE "goal_activity" (
-  "goalId" int,
-  "activityId" int
+  "goalId" int NOT NULL,
+  "activityId" int NOT NULL
 );
 
 CREATE TABLE "sessions" (
   "id" SERIAL PRIMARY KEY,
   "patientId" int NOT NULL,
   "therapistId" int NOT NULL,
-  "scheduledAt" timestamp,
-  "duration" float,
+  "scheduledAt" timestamp with time zone,
+  "durationHr" float,
   "sessionPlanMessage" text,
   "sessionSummaryMessage" text,
   "createdAt" timestamp NOT NULL DEFAULT NOW(),
   "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE "session_activities" (
-  "sessionId" int,
-  "activityId" int,
+CREATE TABLE "session_activity" (
+  "sessionId" int NOT NULL,
+  "activityId" int NOT NULL,
   "recommended" bool DEFAULT false
 );
 
@@ -114,15 +122,15 @@ CREATE TABLE "attempts" (
   "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE "attempt_assistances" (
-  "attemptId" int,
-  "assistanceId" int
+CREATE TABLE "attempt_assistance" (
+  "attemptId" int NOT NULL,
+  "assistanceId" int NOT NULL
 );
 
 CREATE TABLE "session_goal" (
-  "sessionId" int,
-  "goalId" int,
-  "priority" int
+  "sessionId" int NOT NULL,
+  "goalId" int NOT NULL,
+  "priority" int NOT NULL
 );
 
 CREATE TABLE "items" (
@@ -133,26 +141,26 @@ CREATE TABLE "items" (
   "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE "activity_items" (
-  "itemId" int,
-  "goalId" int
+CREATE TABLE "activity_item" (
+  "activityId" int NOT NULL,
+  "itemId" int NOT NULL
 );
 
 CREATE TABLE "words" (
   "id" SMALLSERIAL PRIMARY KEY,
-  "title" varchar,
+  "body" varchar UNIQUE,
   "createdAt" timestamp NOT NULL DEFAULT NOW(),
   "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "patient_word" (
-  "patientId" int,
-  "wordId" int
+  "patientId" int NOT NULL,
+  "wordId" int NOT NULL
 );
 
 CREATE TABLE "goal_word" (
-  "goalId" int,
-  "wordId" int
+  "goalId" int NOT NULL,
+  "wordId" int NOT NULL
 );
 
 CREATE TABLE "skills" (
@@ -161,14 +169,6 @@ CREATE TABLE "skills" (
   "patientId" int,
   "skillTypeId" int,
   "acquired" bool,
-  "createdAt" timestamp NOT NULL DEFAULT NOW(),
-  "updatedAt" timestamp NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE "skillTypes" (
-  "id" SMALLSERIAL PRIMARY KEY,
-  "title" varchar,
-  "level" int,
   "createdAt" timestamp NOT NULL DEFAULT NOW(),
   "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
@@ -276,9 +276,9 @@ ALTER TABLE "sessions" ADD FOREIGN KEY ("patientId") REFERENCES "patients" ("id"
 
 ALTER TABLE "sessions" ADD FOREIGN KEY ("therapistId") REFERENCES "users" ("id");
 
-ALTER TABLE "session_activities" ADD FOREIGN KEY ("sessionId") REFERENCES "sessions" ("id");
+ALTER TABLE "session_activity" ADD FOREIGN KEY ("sessionId") REFERENCES "sessions" ("id");
 
-ALTER TABLE "session_activities" ADD FOREIGN KEY ("activityId") REFERENCES "activities" ("id");
+ALTER TABLE "session_activity" ADD FOREIGN KEY ("activityId") REFERENCES "activities" ("id");
 
 ALTER TABLE "attempts" ADD FOREIGN KEY ("sessionId") REFERENCES "sessions" ("id");
 
@@ -288,9 +288,9 @@ ALTER TABLE "attempts" ADD FOREIGN KEY ("environmentId") REFERENCES "environment
 
 ALTER TABLE "attempts" ADD FOREIGN KEY ("subGoalId") REFERENCES "subGoals" ("id");
 
-ALTER TABLE "attempt_assistances" ADD FOREIGN KEY ("attemptId") REFERENCES "attempts" ("id");
+ALTER TABLE "attempt_assistance" ADD FOREIGN KEY ("attemptId") REFERENCES "attempts" ("id");
 
-ALTER TABLE "attempt_assistances" ADD FOREIGN KEY ("assistanceId") REFERENCES "assistances" ("id");
+ALTER TABLE "attempt_assistance" ADD FOREIGN KEY ("assistanceId") REFERENCES "assistances" ("id");
 
 ALTER TABLE "session_goal" ADD FOREIGN KEY ("sessionId") REFERENCES "sessions" ("id");
 
@@ -298,9 +298,9 @@ ALTER TABLE "session_goal" ADD FOREIGN KEY ("goalId") REFERENCES "goals" ("id");
 
 ALTER TABLE "items" ADD FOREIGN KEY ("patientId") REFERENCES "patients" ("id");
 
-ALTER TABLE "activity_items" ADD FOREIGN KEY ("itemId") REFERENCES "items" ("id");
+ALTER TABLE "activity_item" ADD FOREIGN KEY ("activityId") REFERENCES "activities" ("id");
 
-ALTER TABLE "activity_items" ADD FOREIGN KEY ("goalId") REFERENCES "goals" ("id");
+ALTER TABLE "activity_item" ADD FOREIGN KEY ("itemId") REFERENCES "items" ("id");
 
 ALTER TABLE "patient_word" ADD FOREIGN KEY ("patientId") REFERENCES "patients" ("id");
 
@@ -320,8 +320,10 @@ CREATE UNIQUE INDEX ON "goals" ("serialNum", "patientId");
 
 CREATE UNIQUE INDEX ON "subGoals" ("serialNum", "goalId");
 
-CREATE UNIQUE INDEX ON "activity_assistance" ("assistanceId", "activityId", "priority");
+CREATE UNIQUE INDEX ON "sessions" ("therapistId", "scheduledAt");
 
 CREATE UNIQUE INDEX ON "items" ("title", "patientId");
 
 CREATE UNIQUE INDEX ON "skillTypes" ("title", "level");
+
+CREATE UNIQUE INDEX ON "activity_environment" ("activityId") WHERE "default" = 'true';
