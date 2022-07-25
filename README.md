@@ -9,6 +9,14 @@ This is the REST API server for spectracker. A tracking app for therapy teams us
 uvicorn main:app --reload
 ```
 
+### ...using docker-compose
+
+```commandline
+docker-compose down -v
+docker-compose build --build-arg CURRENT_ENV=dev
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+```
+
 ## testing
 
 The code is covered on a unit level by `PyTest` and on an endpoint level by `TestClient`. To run the tests, use
