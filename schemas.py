@@ -25,3 +25,17 @@ class User(UserBase):
 class UserCreate(UserBase):
     created_at = datetime.now()
     updated_at = datetime.now()
+
+
+class PatientBase(BaseModel):
+    full_name: str
+    birth_date: str
+
+    class Config:
+        alias_generator = to_lower_camel
+        allow_population_by_field_name = True
+        orm_mode = True
+
+
+class Patient(PatientBase):
+    id: int

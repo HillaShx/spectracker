@@ -3,7 +3,7 @@ services:
     image: postgres:13-alpine
     volumes:
       - db:/var/lib/postgresql/data/
-      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./scripts/1_init.sql:/docker-entrypoint-initdb.d/1_init.sql
     expose:
       - 5432
     environment:
