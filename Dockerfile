@@ -2,10 +2,14 @@
 
 FROM python:3.9-alpine3.13
 
-ENV POETRY_VIRTUALENVS_CREATE=false \
+ARG CURRENT_ENV
+
+ENV CURRENT_ENV=${CURRENT_ENV} \
+    POETRY_VIRTUALENVS_CREATE=false \
     POETRY_VERSION=1.1.11 \
-    YOUR_ENV=development \
     CRYPTOGRAPHY_DONT_BUILD_RUST=1
+
+RUN echo Container is running in $CURRENT_ENV mode
 
 RUN pip install docker-compose
 RUN apk add --no-cache python3-dev gcc libc-dev musl-dev openblas gfortran build-base postgresql-libs postgresql-dev libffi-dev curl rust cargo
@@ -16,6 +20,6 @@ ENV PATH "/root/.local/bin:$PATH"
 
 # install dependencies
 COPY pyproject.toml poetry.lock ./
-RUN poetry install $(test "$YOUR_ENV" == production && echo "--no-dev") --no-interaction --no-ansi
+RUN poetry install $(test "$CURRENT_ENV" == prod && echo "--no-dev") --no-interaction --no-ansi
 
 COPY . .
