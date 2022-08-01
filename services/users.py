@@ -14,10 +14,6 @@ def get_users(db: Session, skip: int = 0, limit: int = 100) -> List[schemas.User
     return db.query(models.User).offset(skip).limit(limit).all()
 
 
-def get_patients_by_user(db: Session, user: schemas.User, skip: int = 0, limit: int = 100) -> List[schemas.Patient]:
-    return db.query(models.Patient).filter(models.Patient.user_id == user.id).offset(skip).limit(limit).all()
-
-
 def create_user(db: Session, user: schemas.UserCreate):
     user = models.User(**user.dict())
     db.add(user)

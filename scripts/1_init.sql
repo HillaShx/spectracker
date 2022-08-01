@@ -18,8 +18,8 @@ CREATE TABLE "patients" (
 );
 
 CREATE TABLE "user_patient" (
-  "userId" int NOT NULL,
-  "patientId" int NOT NULL
+  "userId" int NOT NULL REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  "patientId" int NOT NULL REFERENCES patients(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE "skillTypes" (
@@ -34,8 +34,8 @@ CREATE TABLE "goals" (
   "id" SMALLSERIAL PRIMARY KEY,
   "serialNum" int NOT NULL,
   "description" text NOT NULL,
-  "patientId" int NOT NULL,
-  "skillTypeId" int,
+  "patientId" int NOT NULL REFERENCES patients(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  "skillTypeId" int REFERENCES "skillTypes"(id) ON UPDATE CASCADE ON DELETE CASCADE,
   "minTherapists" int NOT NULL,
   "minConsecutiveDays" int NOT NULL,
   "archived" bool NOT NULL DEFAULT false,
@@ -47,7 +47,7 @@ CREATE TABLE "subGoals" (
   "id" SMALLSERIAL PRIMARY KEY,
   "serialNum" int NOT NULL,
   "description" text NOT NULL,
-  "goalId" int NOT NULL,
+  "goalId" int NOT NULL REFERENCES goals(id) ON UPDATE CASCADE ON DELETE CASCADE,
   "completedAt" date,
   "createdAt" timestamp NOT NULL DEFAULT NOW(),
   "updatedAt" timestamp NOT NULL DEFAULT NOW()
@@ -64,7 +64,7 @@ CREATE TABLE "activities" (
   "id" SMALLSERIAL PRIMARY KEY,
   "title" varchar UNIQUE,
   "description" text,
-  "patientId" int,
+  "patientId" int REFERENCES patients(id) ON UPDATE CASCADE ON DELETE CASCADE,
   "createdAt" timestamp NOT NULL DEFAULT NOW(),
   "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
@@ -77,26 +77,26 @@ CREATE TABLE "assistances" (
 );
 
 CREATE TABLE "activity_assistance" (
-  "activityId" int NOT NULL,
-  "assistanceId" int NOT NULL,
+  "activityId" int NOT NULL REFERENCES activities(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  "assistanceId" int NOT NULL REFERENCES assistances(id) ON UPDATE CASCADE ON DELETE CASCADE,
   "priority" int NOT NULL
 );
 
 CREATE TABLE "activity_environment" (
-  "activityId" int NOT NULL,
-  "environmentId" int NOT NULL,
+  "activityId" int NOT NULL REFERENCES activities(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  "environmentId" int NOT NULL REFERENCES environments(id) ON UPDATE CASCADE ON DELETE CASCADE,
   "default" bool NOT NULL DEFAULT false
 );
 
 CREATE TABLE "goal_activity" (
-  "goalId" int NOT NULL,
-  "activityId" int NOT NULL
+  "goalId" int NOT NULL REFERENCES goals(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  "activityId" int NOT NULL REFERENCES activities(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE "sessions" (
   "id" SERIAL PRIMARY KEY,
-  "patientId" int NOT NULL,
-  "therapistId" int NOT NULL,
+  "patientId" int NOT NULL REFERENCES patients(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  "therapistId" int NOT NULL REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
   "scheduledAt" timestamp with time zone,
   "durationHr" float,
   "sessionPlanMessage" text,
@@ -106,44 +106,44 @@ CREATE TABLE "sessions" (
 );
 
 CREATE TABLE "session_activity" (
-  "sessionId" int NOT NULL,
-  "activityId" int NOT NULL,
+  "sessionId" int NOT NULL REFERENCES sessions(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  "activityId" int NOT NULL REFERENCES activities(id) ON UPDATE CASCADE ON DELETE CASCADE,
   "recommended" bool DEFAULT false
 );
 
 CREATE TABLE "attempts" (
   "id" SERIAL PRIMARY KEY,
-  "sessionId" int,
-  "activityId" int,
-  "environmentId" int,
-  "subGoalId" int,
+  "sessionId" int NOT NULL REFERENCES sessions(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  "activityId" int NOT NULL REFERENCES activities(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  "environmentId" int NOT NULL REFERENCES environments(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  "subGoalId" int NOT NULL REFERENCES "subGoals"(id) ON UPDATE CASCADE ON DELETE CASCADE,
   "successful" bool NOT NULL,
   "createdAt" timestamp NOT NULL DEFAULT NOW(),
   "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "attempt_assistance" (
-  "attemptId" int NOT NULL,
-  "assistanceId" int NOT NULL
+  "attemptId" int NOT NULL REFERENCES attempts(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  "assistanceId" int NOT NULL REFERENCES assistances(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE "session_goal" (
-  "sessionId" int NOT NULL,
-  "goalId" int NOT NULL,
+  "sessionId" int NOT NULL REFERENCES sessions(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  "goalId" int NOT NULL REFERENCES goals(id) ON UPDATE CASCADE ON DELETE CASCADE,
   "priority" int NOT NULL
 );
 
 CREATE TABLE "items" (
   "id" SMALLSERIAL PRIMARY KEY,
   "title" varchar,
-  "patientId" int,
+  "patientId" int NOT NULL REFERENCES patients(id) ON UPDATE CASCADE ON DELETE CASCADE,
   "createdAt" timestamp NOT NULL DEFAULT NOW(),
   "updatedAt" timestamp NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE "activity_item" (
-  "activityId" int NOT NULL,
-  "itemId" int NOT NULL
+  "activityId" int NOT NULL REFERENCES activities(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  "itemId" int NOT NULL REFERENCES items(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE "words" (
@@ -154,20 +154,20 @@ CREATE TABLE "words" (
 );
 
 CREATE TABLE "patient_word" (
-  "patientId" int NOT NULL,
-  "wordId" int NOT NULL
+  "patientId" int NOT NULL REFERENCES patients(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  "wordId" int NOT NULL REFERENCES words(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE "goal_word" (
-  "goalId" int NOT NULL,
-  "wordId" int NOT NULL
+  "goalId" int NOT NULL REFERENCES goals(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  "wordId" int NOT NULL REFERENCES words(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE "skills" (
   "id" SMALLSERIAL PRIMARY KEY,
   "title" varchar,
-  "patientId" int,
-  "skillTypeId" int,
+  "patientId" int NOT NULL REFERENCES patients(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  "skillTypeId" int NOT NULL REFERENCES "skillTypes"(id) ON UPDATE CASCADE ON DELETE CASCADE,
   "acquired" bool,
   "createdAt" timestamp NOT NULL DEFAULT NOW(),
   "updatedAt" timestamp NOT NULL DEFAULT NOW()
@@ -245,74 +245,6 @@ CREATE TRIGGER skillTypes_set_ts_now
 BEFORE UPDATE ON "skillTypes"
 FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp();
-
-ALTER TABLE "user_patient" ADD FOREIGN KEY ("userId") REFERENCES "users" ("id");
-
-ALTER TABLE "user_patient" ADD FOREIGN KEY ("patientId") REFERENCES "patients" ("id");
-
-ALTER TABLE "goals" ADD FOREIGN KEY ("patientId") REFERENCES "patients" ("id");
-
-ALTER TABLE "goals" ADD FOREIGN KEY ("skillTypeId") REFERENCES "skillTypes" ("id");
-
-ALTER TABLE "subGoals" ADD FOREIGN KEY ("goalId") REFERENCES "goals" ("id");
-
-ALTER TABLE "subGoals" ADD FOREIGN KEY ("id") REFERENCES "goals" ("id") ON DELETE CASCADE;
-
-ALTER TABLE "activities" ADD FOREIGN KEY ("patientId") REFERENCES "patients" ("id");
-
-ALTER TABLE "activity_assistance" ADD FOREIGN KEY ("activityId") REFERENCES "activities" ("id");
-
-ALTER TABLE "activity_assistance" ADD FOREIGN KEY ("assistanceId") REFERENCES "assistances" ("id");
-
-ALTER TABLE "activity_environment" ADD FOREIGN KEY ("activityId") REFERENCES "activities" ("id");
-
-ALTER TABLE "activity_environment" ADD FOREIGN KEY ("environmentId") REFERENCES "environments" ("id");
-
-ALTER TABLE "goal_activity" ADD FOREIGN KEY ("goalId") REFERENCES "goals" ("id");
-
-ALTER TABLE "goal_activity" ADD FOREIGN KEY ("activityId") REFERENCES "activities" ("id");
-
-ALTER TABLE "sessions" ADD FOREIGN KEY ("patientId") REFERENCES "patients" ("id");
-
-ALTER TABLE "sessions" ADD FOREIGN KEY ("therapistId") REFERENCES "users" ("id");
-
-ALTER TABLE "session_activity" ADD FOREIGN KEY ("sessionId") REFERENCES "sessions" ("id");
-
-ALTER TABLE "session_activity" ADD FOREIGN KEY ("activityId") REFERENCES "activities" ("id");
-
-ALTER TABLE "attempts" ADD FOREIGN KEY ("sessionId") REFERENCES "sessions" ("id");
-
-ALTER TABLE "attempts" ADD FOREIGN KEY ("activityId") REFERENCES "activities" ("id");
-
-ALTER TABLE "attempts" ADD FOREIGN KEY ("environmentId") REFERENCES "environments" ("id");
-
-ALTER TABLE "attempts" ADD FOREIGN KEY ("subGoalId") REFERENCES "subGoals" ("id");
-
-ALTER TABLE "attempt_assistance" ADD FOREIGN KEY ("attemptId") REFERENCES "attempts" ("id");
-
-ALTER TABLE "attempt_assistance" ADD FOREIGN KEY ("assistanceId") REFERENCES "assistances" ("id");
-
-ALTER TABLE "session_goal" ADD FOREIGN KEY ("sessionId") REFERENCES "sessions" ("id");
-
-ALTER TABLE "session_goal" ADD FOREIGN KEY ("goalId") REFERENCES "goals" ("id");
-
-ALTER TABLE "items" ADD FOREIGN KEY ("patientId") REFERENCES "patients" ("id");
-
-ALTER TABLE "activity_item" ADD FOREIGN KEY ("activityId") REFERENCES "activities" ("id");
-
-ALTER TABLE "activity_item" ADD FOREIGN KEY ("itemId") REFERENCES "items" ("id");
-
-ALTER TABLE "patient_word" ADD FOREIGN KEY ("patientId") REFERENCES "patients" ("id");
-
-ALTER TABLE "patient_word" ADD FOREIGN KEY ("wordId") REFERENCES "words" ("id");
-
-ALTER TABLE "goal_word" ADD FOREIGN KEY ("goalId") REFERENCES "goals" ("id");
-
-ALTER TABLE "goal_word" ADD FOREIGN KEY ("wordId") REFERENCES "words" ("id");
-
-ALTER TABLE "skills" ADD FOREIGN KEY ("patientId") REFERENCES "patients" ("id");
-
-ALTER TABLE "skills" ADD FOREIGN KEY ("skillTypeId") REFERENCES "skillTypes" ("id");
 
 CREATE UNIQUE INDEX ON "patients" ("fullName", "birthDate");
 

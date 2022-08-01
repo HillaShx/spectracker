@@ -3,7 +3,7 @@ import pytest
 import models
 from schemas import User
 from services.users import get_users, get_user_by_id, create_user
-from tests.models import UserFactory
+from tests.models import UserFactory, UserCreateFactory
 from utils.objects import object_comparison
 
 
@@ -24,7 +24,7 @@ def test_get_user_by_id(db, user_id, db_result):
     assert type(result) == type(db_result)
 
 
-@pytest.mark.parametrize("user", [UserFactory.build()])
+@pytest.mark.parametrize("user", [UserCreateFactory.build()])
 def test_create_user(db, user):
     create_user(db, user)
     user_model = models.User(**user.dict())
