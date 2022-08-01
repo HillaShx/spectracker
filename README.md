@@ -24,3 +24,4 @@ The code is covered on a unit level by `PyTest` and on an endpoint level by `Tes
 poetry run pytest
 ```
 Tests also run on each commit using a pre-commit hook
+-
