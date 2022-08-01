@@ -24,3 +24,13 @@ def test_get_user(monkeypatch, function_mock, user_id, expected_code):
     monkeypatch.setattr("services.users.get_user_by_id", function_mock)
     response = client.get(f"/users/{user_id}")
     assert response.status_code == expected_code
+
+
+@pytest.mark.parametrize("function_mock, user_id, expected_code", [
+    ((get_user_by_id, UserFactory.build()), EXISTING_ID, 200),
+    ((get_user_by_id, None), NON_EXISTING_ID, 404),
+], indirect=["function_mock"])
+def test_get_user_patients(monkeypatch, function_mock, user_id, expected_code):
+    monkeypatch.setattr("services.users.get_user_by_id", function_mock)
+    response = client.get(f"/users/{user_id}/patients")
+    assert response.status_code == expected_code

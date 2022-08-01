@@ -22,12 +22,12 @@ async def get_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_d
     return users
 
 
-@router.get("/{user_id}/patients", response_model=schemas.Patient)
-async def get_user(user_id: int, db: Session = Depends(get_db)):
+@router.get("/{user_id}/patients", response_model=List[schemas.Patient])
+async def get_user_patients(user_id: int, db: Session = Depends(get_db)):
     user = user_service.get_user_by_id(db, user_id)
     if user is None:
         raise HTTPException(404)
-    patients = user_service.get_patients_by_user(db, user)
+    patients = user.patients
     return patients
 
 
