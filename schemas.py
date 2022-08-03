@@ -2,9 +2,7 @@ from datetime import datetime, date
 from typing import List
 
 from pydantic import BaseModel
-from sqlalchemy import Table, Column, Integer, ForeignKey
 
-from database import Base
 from utils.strings import to_lower_camel
 
 
