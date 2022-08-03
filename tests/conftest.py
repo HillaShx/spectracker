@@ -1,8 +1,12 @@
+import os
+import sys
 from inspect import signature
 from unittest.mock import MagicMock
 
 import pytest
 from makefun import with_signature
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 
 @pytest.fixture
