@@ -9,6 +9,13 @@ on:
 permissions:
   contents: read
 
+env:
+  PGUSER: postgres
+  PGPASSWORD: password
+  PGPORT: 5432
+  PGHOST: 0.0.0.0
+  PGDB: postgres
+
 jobs:
   test:
     runs-on: ubuntu-latest
