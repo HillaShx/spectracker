@@ -3,7 +3,8 @@
 
 name: Spectracker FastAPI
 
-on: [push]
+on:
+  push
 
 permissions:
   contents: read
